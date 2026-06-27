@@ -193,17 +193,45 @@ class AnalysisService:
 
 ```text
 solver/
-
-├── providers/
-│
-├── texas_solver.py
-├── pio_solver.py
-│
-├── models.py
-└── factory.py
+├── __init__.py             # 统一导出
+├── base.py                 # SolverProvider 抽象基类
+├── factory.py              # 模式路由工厂 (get_solver(mode))
+├── equity_calculator.py    # Monte Carlo equity 引擎（模式感知）
+├── texas_solver.py         # 具体 Solver 实现
+│   ├── TexasSolver         # 标准 52 张牌
+│   ├── ShortDeckSolver     # 短牌 36 张牌
+│   ├── SNGSolver           # SNG 模式（M1: 占位，M2: ICM）
+│   └── SquidSolver         # 鱿鱼模式（M1: 占位，M2: 生存EV）
+├── engine/                 # 可插拔引擎
+│   ├── deck.py             # DeckConfig（牌组配置）
+│   └── hand_evaluator.py   # HandEvaluator（模式感知牌力评估）
+└── ranges/                 # 对手范围表
+    ├── standard.py         # 标准 9 人桌范围
+    └── shortdeck.py        # 短牌范围
 ```
 
----
+## 多模式支持（M1 实现）
+
+从 M1 开始，Solver 架构支持多种游戏模式：
+
+```python
+# 模式 → Solver 映射
+MODE_SOLVER_MAP = {
+    "standard":   TexasSolver,       # 52张牌，标准排名
+    "shortdeck":  ShortDeckSolver,   # 36张牌，同花>葫芦
+    "sng":        SNGSolver,         # M1: 标准EV占位，M2: ICM
+    "squid":      SquidSolver,       # M1: 标准EV占位，M2: 生存EV
+}
+```
+
+每个模式通过 `DeckConfig` 和 `HandEvaluator` 控制其独特的：
+- 牌组大小（52 vs 36）
+- 有效等级（2-A vs 6-A）
+- 牌力排名（同花 vs 葫芦的顺序）
+- Wheel 顺子定义
+- 对手范围表
+
+所有 Solver 共用相同的 `SolverBase` 基类，差异仅在于 `self.mode` 属性。
 
 统一输出：
 

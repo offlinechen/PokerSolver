@@ -1,7 +1,7 @@
-"""Fake Analysis Service — M1 demo mode, no DB / Redis / OpenAI required.
+"""Fake Analysis Service — M1 demo mode, no DB / Redis required.
 
-Runs the real Solver in-memory, uses AI fallback text, returns full
-AnalysisResponse without any persistence.
+Runs the real Solver in-memory + real AI (DeepSeek V4-Pro) via api key.
+Returns full AnalysisResponse without any persistence.
 """
 
 from datetime import datetime, timezone
@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from app.ai.factory import get_coach
 from app.schemas.analysis import AnalysisResponse, StrategyBreakdown
-from app.schemas.game_state import GameStateRequest
+from app.schemas.game_state import GameStateRequest, GameMode
 from app.solver.factory import get_solver
 
 
@@ -17,17 +17,18 @@ class FakeAnalysisService:
     """In-memory analysis pipeline for M1 development / demo.
 
     Uses:
-      - Real Monte Carlo Solver (equity_calculator)
-      - AI fallback (no API key needed)
+      - Real Monte Carlo Solver (mode-aware equity_calculator)
+      - Real AI Coach (DeepSeek V4-Pro — requires DEEPSEEK_API_KEY in .env)
       - No database persistence
       - No Redis caching
     """
 
     async def analyze(self, game_state: GameStateRequest) -> AnalysisResponse:
-        solver = get_solver()
+        mode = game_state.mode.value if isinstance(game_state.mode, GameMode) else game_state.mode
+        solver = get_solver(mode)
         coach = get_coach()
 
-        # 1. Real Solver
+        # 1. Real Solver (mode-aware)
         solver_result = await solver.solve(game_state)
 
         # 2. AI (will use fallback since no API key by default)

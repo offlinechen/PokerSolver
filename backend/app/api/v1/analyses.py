@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_db
 from app.config import settings
 from app.schemas.analysis import AnalysisListResponse, AnalysisResponse
+from app.schemas.solver import StrategyBreakdown
 
 if TYPE_CHECKING:
     from app.models.analysis import Analysis

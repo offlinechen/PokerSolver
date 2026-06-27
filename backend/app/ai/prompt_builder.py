@@ -47,6 +47,15 @@ class PromptBuilder:
         position = game_state.hero_position.value
         stack = game_state.stack_size_bb
         pot = game_state.pot_size_bb
+        mode = game_state.mode.value if hasattr(game_state.mode, 'value') else str(game_state.mode)
+
+        mode_names = {
+            "standard": "标准德州（52张牌）",
+            "shortdeck": "短牌模式（36张牌，6-A，同花>葫芦）",
+            "sng": "SNG锦标赛模式",
+            "squid": "鱿鱼生存模式",
+        }
+        mode_display = mode_names.get(mode, mode)
 
         # Build action history
         action_lines = []
@@ -62,6 +71,7 @@ class PromptBuilder:
 
         user_prompt = f"""## 当前牌局
 
+**游戏模式**: {mode_display}
 **Hero手牌**: {hero_cards}
 **公共牌**: {board}
 **位置**: {position}

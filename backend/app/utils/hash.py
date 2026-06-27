@@ -17,9 +17,15 @@ def compute_game_state_hash(
     stack_size: float,
     pot_size: float,
     actions: list[dict],
+    mode: str = "standard",
 ) -> str:
-    """Compute a deterministic hash for a GameState to use as Solver cache key."""
+    """Compute a deterministic hash for a GameState to use as Solver cache key.
+
+    Args:
+        mode: Game mode string — ensures different modes don't share caches.
+    """
     return compute_hash(
+        mode,
         sorted(hero_cards),
         sorted(board_cards),
         position,

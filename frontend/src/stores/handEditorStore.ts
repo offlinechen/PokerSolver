@@ -3,7 +3,7 @@
 // ============================================================
 
 import { create } from 'zustand';
-import type { ActionRecord, Card, Position, Street, Villain } from '@/types/poker';
+import type { ActionRecord, Card, GameMode, Position, Street, Villain } from '@/types/poker';
 import { getPositionsForTable } from '@/types/poker';
 
 export const STREETS: Street[] = ['PREFLOP', 'FLOP', 'TURN', 'RIVER'];
@@ -17,6 +17,9 @@ export const BOARD_CARDS_PER_STREET: Record<Street, number> = {
 };
 
 interface HandEditorState {
+  // Game mode
+  mode: GameMode;
+
   // Hand State
   heroCards: Card[];
   boardCards: Card[];
@@ -32,6 +35,7 @@ interface HandEditorState {
   currentTurnIndex: number;   // whose turn in the action order (0-based)
 
   // Actions
+  setMode: (mode: GameMode) => void;
   setHeroCards: (cards: Card[]) => void;
   setBoardCards: (cards: Card[]) => void;
   setHeroPosition: (pos: Position) => void;
@@ -58,11 +62,12 @@ function buildVillains(tableSize: number, heroPos?: Position | null): Villain[] 
 }
 
 const initialState = {
+  mode: 'standard' as GameMode,
   heroCards: [] as Card[],
   boardCards: [] as Card[],
   heroPosition: null as Position | null,
   stackSizeBB: 100,
-  potSizeBB: 0,
+  potSizeBB: 1.5,  // 默认盲注 1.5BB（SB+BB），避免 EV 为 0
   actions: [] as ActionRecord[],
   tableSize: 6,
   villains: buildVillains(6),
@@ -73,6 +78,7 @@ const initialState = {
 export const useHandEditorStore = create<HandEditorState>((set) => ({
   ...initialState,
 
+  setMode: (mode) => set({ mode }),
   setHeroCards: (cards) => set({ heroCards: cards }),
   setBoardCards: (cards) => set({ boardCards: cards }),
   setStackSize: (bb) => set({ stackSizeBB: bb }),

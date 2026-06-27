@@ -8,13 +8,14 @@ import type {
   HandResponse,
   ReplayResponse,
 } from '@/types/analysis';
-import type { ActionRecord, Position, Street } from '@/types/poker';
+import type { ActionRecord, GameMode, Position, Street } from '@/types/poker';
 
 const API_BASE = '/api/v1';
 
 // --- Analyze ---
 
 export interface AnalyzeRequest {
+  mode: GameMode;
   hero_cards: [string, string];
   board_cards: string[];
   hero_position: Position;

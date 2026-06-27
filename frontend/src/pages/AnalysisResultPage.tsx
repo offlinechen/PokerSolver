@@ -199,9 +199,9 @@ export default function AnalysisResultPage() {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
                 {[
-                  { label: 'Call', value: result.call_ev },
-                  { label: 'Raise', value: result.raise_ev },
-                  { label: 'Fold', value: result.fold_ev },
+                  { label: 'Call', value: result.call_ev ?? 0 },
+                  { label: 'Raise', value: result.raise_ev ?? 0 },
+                  { label: 'Fold', value: result.fold_ev ?? 0 },
                 ].map(({ label, value }) => (
                   <Box key={label} sx={{ textAlign: 'center' }}>
                     <Typography
@@ -210,7 +210,7 @@ export default function AnalysisResultPage() {
                       color={value > 0 ? 'success.main' : value < 0 ? 'error.main' : 'text.secondary'}
                     >
                       {value > 0 ? '+' : ''}
-                      {value.toFixed(2)}
+                      {Number(value).toFixed(2)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {label} EV (BB)

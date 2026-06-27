@@ -5,6 +5,14 @@ from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
 
+class GameMode(str, Enum):
+    """Supported game modes."""
+    STANDARD = "standard"
+    SHORTDECK = "shortdeck"
+    SNG = "sng"
+    SQUID = "squid"
+
+
 class Position(str, Enum):
     UTG = "UTG"
     UTG1 = "UTG1"
@@ -52,7 +60,12 @@ class CardInput(BaseModel):
 
 
 class GameStateRequest(BaseModel):
-    """Request body for hand analysis."""
+    """Request body for hand analysis.
+
+    M1: mode, hero_cards, board_cards, hero_position, stack_size_bb, pot_size_bb
+    M2: + villain_profile, action_history analysis, table_size
+    """
+    mode: GameMode = GameMode.STANDARD
     hero_cards: list[str] = Field(..., min_length=2, max_length=2)
     board_cards: list[str] = Field(
         default_factory=list, min_length=0, max_length=5

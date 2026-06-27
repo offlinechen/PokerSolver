@@ -6,10 +6,29 @@
 export type Suit = 'h' | 'd' | 'c' | 's';
 export type Rank = 'A' | 'K' | 'Q' | 'J' | 'T' | '9' | '8' | '7' | '6' | '5' | '4' | '3' | '2';
 
+// Short Deck ranks (only 6-A)
+export const SHORTDECK_RANKS: Rank[] = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6'];
+
 export interface Card {
   rank: Rank;
   suit: Suit;
 }
+
+// --- Game Mode Types ---
+export type GameMode = 'standard' | 'shortdeck' | 'sng' | 'squid';
+
+export interface GameModeInfo {
+  id: GameMode;
+  name: string;
+  description: string;
+}
+
+export const GAME_MODES: GameModeInfo[] = [
+  { id: 'standard', name: '标准德州', description: '52张牌标准规则' },
+  { id: 'shortdeck', name: '短牌模式', description: '36张牌(6-A)，同花>葫芦' },
+  { id: 'sng', name: 'SNG模式', description: '坐满即开锦标赛' },
+  { id: 'squid', name: '鱿鱼模式', description: '生存淘汰赛制' },
+];
 
 // --- Position Types ---
 export type Position = 'UTG' | 'UTG1' | 'UTG2' | 'MP' | 'HJ' | 'CO' | 'BTN' | 'SB' | 'BB';

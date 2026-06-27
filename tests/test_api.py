@@ -68,28 +68,29 @@ async def test_analyze_validation_bad_position(client):
 
 def test_parse_card():
     """Test card parsing."""
-    from app.solver.equity_calculator import parse_card, format_card
-    card = parse_card("Ah")
-    assert format_card(card) == "Ah"
+    from app.solver.engine.deck import DeckConfig
+    card = DeckConfig.parse_card("Ah")
+    assert DeckConfig.format_card(card) == "Ah"
 
-    card = parse_card("2c")
-    assert format_card(card) == "2c"
+    card = DeckConfig.parse_card("2c")
+    assert DeckConfig.format_card(card) == "2c"
 
-    card = parse_card("Td")
-    assert format_card(card) == "Td"
+    card = DeckConfig.parse_card("Td")
+    assert DeckConfig.format_card(card) == "Td"
 
 
 def test_hand_scoring():
     """Test basic hand scoring."""
-    from app.solver.equity_calculator import parse_card, _best_5
+    from app.solver.engine.deck import DeckConfig
+    from app.solver.engine.hand_evaluator import best_5_cards
 
     # Royal flush: A-K-Q-J-T all hearts
-    royal = [parse_card(c) for c in ["Ah", "Kh", "Qh", "Jh", "Th", "2c", "3d"]]
-    score1 = _best_5(royal)
+    royal = [DeckConfig.parse_card(c) for c in ["Ah", "Kh", "Qh", "Jh", "Th", "2c", "3d"]]
+    score1 = best_5_cards(royal, mode="standard")
 
     # Ace-high (no pair, no straight): A-K-Q-J-9
-    high_card = [parse_card(c) for c in ["Ah", "Ks", "Qh", "Jh", "9c", "5c", "3d"]]
-    score2 = _best_5(high_card)
+    high_card = [DeckConfig.parse_card(c) for c in ["Ah", "Ks", "Qh", "Jh", "9c", "5c", "3d"]]
+    score2 = best_5_cards(high_card, mode="standard")
 
     assert score1 > score2, f"Royal flush ({score1}) should beat ace-high ({score2})"
 

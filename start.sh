@@ -11,6 +11,9 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 start_backend() {
   echo "🔹 启动后端 (FAKE_MODE=true) → http://localhost:8000"
   cd "$ROOT/backend"
+  if [ -f "$ROOT/backend/.venv/bin/activate" ]; then
+    source "$ROOT/backend/.venv/bin/activate"
+  fi
   python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 }
 

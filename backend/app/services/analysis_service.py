@@ -12,7 +12,7 @@ from app.models.analysis import Analysis
 from app.models.hand import Hand
 from app.models.player import Player
 from app.schemas.analysis import AnalysisResponse, StrategyBreakdown
-from app.schemas.game_state import GameStateRequest
+from app.schemas.game_state import GameStateRequest, GameMode
 from app.schemas.solver import SolverResult
 from app.services.cache_service import cache_service
 from app.solver.factory import get_solver
@@ -28,12 +28,14 @@ class AnalysisService:
         """
         Full analysis pipeline:
         1. Check Solver cache → if hit, skip Solver
-        2. Run Solver
+        2. Run Solver (mode-aware)
         3. Check AI cache → if hit, skip AI
         4. Run AI Coach
         5. Persist results
         """
-        # 1. Build state hash
+        mode = game_state.mode.value if isinstance(game_state.mode, GameMode) else game_state.mode
+
+        # 1. Build state hash (includes mode for cache key uniqueness)
         state_hash = compute_game_state_hash(
             hero_cards=game_state.hero_cards,
             board_cards=game_state.board_cards,
@@ -41,12 +43,13 @@ class AnalysisService:
             stack_size=game_state.stack_size_bb,
             pot_size=game_state.pot_size_bb,
             actions=[a.model_dump() for a in game_state.actions],
+            mode=mode,
         )
 
-        # 2. Solver (with cache)
+        # 2. Solver (with cache, mode-aware)
         solver_result = await cache_service.get_solver_result(state_hash)
         if solver_result is None:
-            solver = get_solver()
+            solver = get_solver(mode)
             solver_result = await solver.solve(game_state)
             await cache_service.set_solver_result(state_hash, solver_result)
 
@@ -193,8 +196,13 @@ class AnalysisService:
         return analysis
 
     def _parse_ai_output(self, ai_text: str) -> tuple[str, str, str, list[str]]:
-        """Parse the AI's markdown output into structured sections."""
+        """Parse the AI's markdown output into structured sections.
+
+        Returns:
+            Tuple of (gto_analysis, exploit_analysis, risk_analysis, learning_points)
+        """
         gto = ""
+        exploit = ""
         risk = ""
         points: list[str] = []
 
@@ -205,6 +213,9 @@ class AnalysisService:
         for line in lines:
             if "### GTO" in line or "## GTO" in line:
                 current_section = "gto"
+                continue
+            elif "### 利用" in line or "## 利用" in line or "### Exploit" in line or "## Exploit" in line:
+                current_section = "exploit"
                 continue
             elif "### 风险" in line or "## 风险" in line:
                 current_section = "risk"
@@ -218,6 +229,8 @@ class AnalysisService:
 
             if current_section == "gto":
                 gto += line + "\n"
+            elif current_section == "exploit":
+                exploit += line + "\n"
             elif current_section == "risk":
                 risk += line + "\n"
             elif current_section == "points":
@@ -227,6 +240,7 @@ class AnalysisService:
 
         return (
             gto.strip() or "暂无GTO分析",
+            exploit.strip() or "暂无利用分析",
             risk.strip() or "暂无风险分析",
             points if points else ["持续练习，关注Solver建议"],
         )
